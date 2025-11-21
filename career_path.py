@@ -43,9 +43,39 @@ try:
         'Ui/Ux Designer': 'Designer',
         'Content Writer': 'Writer',
         'Manager': 'Business Manager',
-        'Human Resources': 'HR Specialist'
+        'Human Resources': 'HR Specialist',
+        'Primary School Teacher': 'Teacher',
+        'Secondary School Teacher': 'Teacher',
+        'Tutor': 'Teacher',
+        'Lecturer': 'Teacher',
+        'Professor': 'Teacher',
+        'Educator': 'Teacher',
+        'Instructor': 'Teacher'
     }
     df[col_target] = df[col_target].replace(job_mapping)
+
+    # --- BALANCING THE DATASET ---
+    # 1. Check which jobs have way too many rows
+    job_counts = df[col_target].value_counts()
+    
+    # 2. Define a limit. No job should have more than 150 samples.
+    MAX_SAMPLES_PER_JOB = 150
+    
+    balanced_df_list = []
+    
+    for job_title in df[col_target].unique():
+        job_rows = df[df[col_target] == job_title]
+        
+        # If a job has too many rows, sample only 150 of them
+        if len(job_rows) > MAX_SAMPLES_PER_JOB:
+            job_rows = job_rows.sample(n=MAX_SAMPLES_PER_JOB, random_state=42)
+            
+        balanced_df_list.append(job_rows)
+        
+    # Rebuild the dataframe with the balanced data
+    df = pd.concat(balanced_df_list)
+    
+    print(f"   ⚖️  Dataset Balanced. 'Bully' classes capped at {MAX_SAMPLES_PER_JOB} rows.")
 
     # 3. FILTER JUNK
     bad_patterns = 'student|unemployed|not working|na|0|nan'
